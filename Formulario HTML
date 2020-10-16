@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css"
+    <title>RETO MASTER</title>
+</head>
+<body>
+    <h1 id="titulo" class="titulo-class">COVIDSOLUTIONS</h1>
+    <p id="instrucciones" style="border: 2px solid blue;">
+        Ingresa la URL de una imagen para identificarla
+    </p>
+    <form id="MyForm">
+        <input id="url" type="url" placeholder="URL de la imagen" >
+        <button type="button" onclick="sendToPrediction()">Enviar</button>
+    </form>
+    <p id="result_space"></p>
+
+</body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+<script>
+    function sendToPrediction() {
+            const link = document.getElementById("url").value;
+            $.ajax({
+                url:"https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/04cd3932-dd64-4131-b0d8-560168f78931/classify/iterations/COVIDSOLUTIONS/url",
+                beforeSend: function(xhrObj) {
+                    xhrObj.setRequestHeader("Content-Type","application/json");
+                    xhrObj.setRequestHeader("Prediction-Key","xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+                }, 
+                type:"POST",
+                data:'{"URL": "' + link + '"}"',
+            })
+            .done(function(data) {
+                console.log(data.predictions);
+                var majorElement = "";
+                var majorProbability = 0;
+                data.predictions.forEach(element =>{
+                    if(majorProbability < element.probability) {
+                        majorProbability = element.probability
+                        majorElement = element.tagName
+                    }
+                });
+                
+                const finalPrediction = majorProbability * 100;
+
+                switch (majorElement) {
+                    case "Trabajo informal":
+                        document.getElementById("result_space").innerHTML = "La foto que enviaste es de Trabajo informal con una probabilidad del " + finalPrediction + " % "
+                        break;
+                    case "Trabajo formal":
+                        document.getElementById("result_space").innerHTML = "La foto que enviaste es de Trabajo formal con una probabilidad del " + finalPrediction + " % "
+                        break;
+                    default:
+                        document.getElementById("result_space").innerHTML = "No sé qué enviaste "
+                }
+
+                
+            })
+            .fail(function(){
+                document.getElementById("result_space").innerHTML = "Hubo un error en la ejecución"
+            })
+        }
+            function round(num, decimales =2){
+                var signo =(num >=0 ? 1 : -1);
+                num = num * signo;
+                if (decimales === 0)
+                    return signo * Math.round(num)
+        
+                num = num.toString().split('e');
+                num = Math.round(+(num[0] + 'e' + (num[1] ? (+num[1] + decimales) : decimales ) ) );
+        
+                num= num.toString().split('e');
+                return num = Math.round(+(num[0] + 'e' + (num[1] ? (+num[1] - decimales) : -decimales ) ) );
+                
+            }
+            
+    
+</script>
